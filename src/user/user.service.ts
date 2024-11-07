@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from './user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -32,19 +36,29 @@ export class UserService {
 
   update(id: string, passDto: UpdatePasswordDto): User {
     const user = this.users.find((user) => user.id === id);
-    if (passDto.newPassword !== passDto.oldPassword)
-      throw new ForbiddenException('Incorrect old password');
-    console.log('passDto.newPassword: ', passDto.newPassword);
-    console.log('passDto: ', passDto);
 
-    user.password = passDto.newPassword;
-    user.version += 1;
-    user.updatedAt = Date.now();
+    if (user) {
+      if (passDto.oldPassword !== user.password)
+        throw new ForbiddenException('Incorrect old password');
+      console.log('passDto.newPassword: ', passDto.newPassword);
+      console.log('passDto: ', passDto);
 
-    return user;
+      user.password = passDto.newPassword;
+      user.version += 1;
+      user.updatedAt = Date.now();
+
+      return user;
+    } else {
+      return null;
+    }
   }
 
   delete(id: string): void {
-    this.users = this.users.filter((user) => user.id !== id);
+    const arrWithDeleted = this.users.filter((user) => user.id !== id);
+    if (arrWithDeleted.length === this.users.length) {
+      throw new NotFoundException('User not found');
+    } else {
+      this.users = arrWithDeleted;
+    }
   }
 }
