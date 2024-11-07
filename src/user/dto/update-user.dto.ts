@@ -1,8 +1,8 @@
 import { IsDefined, IsNotEmpty } from "class-validator";
 
 export class UpdatePasswordDto {
-  @IsDefined()
+  @IsNotEmpty()
   oldPassword: string; // previous password
-  @IsDefined()
+  @IsNotEmpty()
   newPassword: string; // new password
 }

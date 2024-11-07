@@ -1,5 +1,7 @@
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Body,
   Controller,
   Delete,
@@ -10,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.entity';
-import { CreateUserDto } from './create-user.dto';
-import { UpdatePasswordDto } from './update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdatePasswordDto } from './dto/update-user.dto';
 import { isUUID } from 'class-validator';
 
 @Controller('user')
@@ -25,7 +27,12 @@ export class UserController {
 
   @Get(':id')
   findUnique(@Param('id') id: string): User {
-    return this.userService.findUnique(id);
+    if (!isUUID(id)) throw new BadRequestException('Invalid UUID');
+    const user = this.userService.findUnique(id);
+    if(!user  ) {
+      throw new HttpException('Not found', HttpStatus.NOT_FOUND)
+    }
+
   }
 
   @Post()
