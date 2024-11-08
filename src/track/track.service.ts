@@ -45,4 +45,10 @@ export class TrackService {
 
     this.tracks.splice(trackIdx, 1);
   }
+  setNullArtist(artistId: string) {
+    const track = this.tracks.find((el) => el.artistId === artistId);
+    if (track) {
+      this.update(track.id, { ...track, artistId: null });
+    }
+  }
 }
