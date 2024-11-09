@@ -51,4 +51,11 @@ export class TrackService {
       this.update(track.id, { ...track, artistId: null });
     }
   }
+
+  setNullAlbum(albumId: string) {
+    const track = this.tracks.find((el) => el.albumId === albumId);
+    if (track) {
+      this.update(track.id, { ...track, albumId: null });
+    }
+  }
 }
