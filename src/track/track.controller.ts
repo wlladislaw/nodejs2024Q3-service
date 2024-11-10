@@ -24,7 +24,7 @@ export class TrackController {
 
   @Get(':id')
   findTrack(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.trackService.findTrack(id);
+    return this.trackService.findOne(id);
   }
 
   @Post()

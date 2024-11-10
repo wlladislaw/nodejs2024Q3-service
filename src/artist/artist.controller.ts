@@ -22,7 +22,7 @@ export class ArtistController {
   }
   @Get(':id')
   findUnique(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.artistService.findOneArtist(id);
+    return this.artistService.findOne(id);
   }
   @Post()
   create(@Body() createArtistDto: ArtistDto) {
