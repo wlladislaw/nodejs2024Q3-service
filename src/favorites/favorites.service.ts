@@ -3,24 +3,24 @@ import { AlbumService } from './../album/album.service';
 import { TrackService } from './../track/track.service';
 import {
   BadRequestException,
-  forwardRef,
-  Inject,
   Injectable,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 
 import { Favorites } from './favorites.entity';
+import { OnEvent } from '@nestjs/event-emitter';
+import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
 
 @Injectable()
 export class FavoritesService {
   private favorites: Favorites = { tracks: [], albums: [], artists: [] };
 
   constructor(
-    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
-    @Inject(forwardRef(() => AlbumService))
+
     private readonly albumService: AlbumService,
-    @Inject(forwardRef(() => ArtistService))
+
     private readonly artistService: ArtistService,
   ) {}
 
@@ -41,13 +41,20 @@ export class FavoritesService {
     if (currService === null) {
       throw new BadRequestException('Not found');
     }
-    const currEntity = currService.service.findOne(id);
-    if (!currEntity) {
-      throw new UnprocessableEntityException(`${entity} does not exist`);
+    try {
+      currService.service.findOne(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new UnprocessableEntityException(`${entity} id does not exist`);
+      } else {
+        throw error;
+      }
     }
 
     const favoritesList = this.favorites[currService.favsArr];
-    if (!favoritesList.includes(id)) favoritesList.push(id);
+    if (!favoritesList.includes(id)) {
+      favoritesList.push(id);
+    }
   }
 
   private getCurrService(entity: string) {
@@ -63,15 +70,29 @@ export class FavoritesService {
     }
   }
 
+  @OnEvent('deleteEntity')
+  handleDeleteEvent(event: DeleteEntityEvent) {
+    try {
+      this.deleteFromFav(
+        event.entityId,
+        event.entityType as 'artist' | 'album' | 'track',
+      );
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+
   deleteFromFav(id: string, entity: string) {
     const currService = this.getCurrService(entity);
-    const currArr = this.favorites[currService.favsArr];
-    const idx = currArr.indexOf(id);
+
+    const currArr = this.favorites[currService?.favsArr];
+
+    const idx = currArr?.indexOf(id);
 
     if (idx === -1) {
-      throw new BadRequestException('Not found');
+      throw new NotFoundException(`${entity} by ${id} does not exist in favs`);
     }
 
-    currArr.splice(idx, 1);
+    currArr?.splice(idx, 1);
   }
 }

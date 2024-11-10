@@ -1,25 +1,13 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Artist } from './artist.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { ArtistDto } from './dto/artist.dto';
-import { TrackService } from 'src/track/track.service';
-import { AlbumService } from 'src/album/album.service';
-import { FavoritesService } from 'src/favorites/favorites.service';
+
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
 @Injectable()
 export class ArtistService {
-  constructor(
-    @Inject(forwardRef(() => TrackService))
-    private readonly trackService: TrackService,
-    @Inject(forwardRef(() => AlbumService))
-    private readonly albumservice: AlbumService,
-    @Inject(forwardRef(() => FavoritesService))
-    private readonly favsService: FavoritesService,
-  ) {}
+  constructor(private eventEmitter: EventEmitter2) {}
   private artists: Artist[] = [];
 
   findAllArtists(): Artist[] {
@@ -59,9 +47,9 @@ export class ArtistService {
     if (!artist) {
       throw new NotFoundException('Not found artist by this id');
     }
-    this.trackService.setNullArtist(id);
-    this.albumservice.setNullArtist(id);
-    this.favsService.deleteFromFav(id, 'artist');
+
+    this.eventEmitter.emit('deleteEntity', new DeleteEntityEvent('artist', id));
+
     this.artists = this.artists.filter((el) => el.id !== id);
   }
 }

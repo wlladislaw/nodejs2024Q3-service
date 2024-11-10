@@ -22,16 +22,16 @@ export class FavoritesController {
   createFav(
     @Param('entity') entity: 'track' | 'album' | 'artist',
 
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     return this.favoritesService.addToFav(id, entity);
   }
 
   @Delete(':entity/:id')
   @HttpCode(204)
-  removeFavorite(
+  deleteFav(
     @Param('entity') entity: 'artist' | 'album' | 'track',
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
   ) {
     this.favoritesService.deleteFromFav(id, entity);
   }
