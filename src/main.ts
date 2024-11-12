@@ -26,6 +26,6 @@ async function bootstrap() {
   );
   const PORT = process.env.PORT ?? 4000;
   console.log(`Serveur coucou on ${PORT}`);
-  await app.listen(PORT);
+  await app.listen(PORT, '0.0.0.0');
 }
 bootstrap();
