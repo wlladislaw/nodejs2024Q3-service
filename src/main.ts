@@ -10,13 +10,13 @@ import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const yamlDocPath = path.join(__dirname, '../doc/api.yaml');
+  // const yamlDocPath = path.join(__dirname, '../doc/api.yaml');
 
-  const docApi = yaml.load(
-    fs.readFileSync(yamlDocPath, 'utf8'),
-  ) as OpenAPIObject;
+  // const docApi = yaml.load(
+  //   fs.readFileSync(yamlDocPath, 'utf8'),
+  // ) as OpenAPIObject;
 
-  SwaggerModule.setup('/docs', app, docApi);
+  // SwaggerModule.setup('/docs', app, docApi);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,6 +24,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  app.enableShutdownHooks();
   const PORT = process.env.PORT ?? 4000;
   console.log(`Serveur coucou on ${PORT}`);
   await app.listen(PORT, '0.0.0.0');
