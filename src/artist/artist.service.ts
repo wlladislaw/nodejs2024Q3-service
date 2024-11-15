@@ -5,51 +5,65 @@ import { ArtistDto } from './dto/artist.dto';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
+import { PrismaService } from 'prisma/prisma.service';
 @Injectable()
 export class ArtistService {
-  constructor(private eventEmitter: EventEmitter2) {}
-  private artists: Artist[] = [];
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private prisma: PrismaService,
+  ) {}
 
-  findAllArtists(): Artist[] {
-    return this.artists;
+
+  async findAllArtists(): Promise<Artist[]> {
+    return await this.prisma.artist.findMany();
   }
 
-  findOne(id: string) {
-    const artist = this.artists.find((el) => el.id === id);
-    if (!artist) {
-      throw new NotFoundException('Artist by this id not found');
+  async findOne(id: string) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+    if (artist) {
+      return artist;
+    } else {
+      return null;
     }
-    return artist;
   }
 
-  createArtist(createDto: ArtistDto) {
-    const newArtist = {
-      id: uuidv4(),
-      name: createDto.name,
-      grammy: createDto.grammy,
-    };
-    this.artists.push(newArtist);
+  async createArtist(createDto: ArtistDto) {
+    const newArtist = await this.prisma.artist.create({
+      data: {
+        name: createDto.name,
+        grammy: createDto.grammy,
+      },
+    });
     return newArtist;
   }
 
-  updateArtist(id: string, updateDto: ArtistDto) {
-    const artistIdx = this.artists.findIndex((el) => el.id === id);
-    if (artistIdx === -1) {
+  async updateArtist(id: string, updateDto: ArtistDto) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+    if (!artist) {
       throw new NotFoundException('Not found artist by this id ');
     }
-    const updatedArtist = { ...this.artists[artistIdx], ...updateDto };
-    this.artists[artistIdx] = updatedArtist;
+    const updatedArtist = await this.prisma.artist.update({
+      where: { id },
+      data: {
+        ...updateDto,
+      },
+    });
+
     return updatedArtist;
   }
 
-  delete(id: string) {
-    const artist = this.artists.find((artist) => artist.id === id);
-    if (!artist) {
+  async delete(id: string) {
+    const artist = await this.prisma.artist.findUnique({ where: { id } });
+    if (artist) {
+      await this.prisma.artist.delete({
+        where: { id },
+      });
+      this.eventEmitter.emit(
+        'deleteEntity',
+        new DeleteEntityEvent('artist', id),
+      );
+    } else {
       throw new NotFoundException('Not found artist by this id');
     }
-
-    this.eventEmitter.emit('deleteEntity', new DeleteEntityEvent('artist', id));
-
-    this.artists = this.artists.filter((el) => el.id !== id);
   }
 }

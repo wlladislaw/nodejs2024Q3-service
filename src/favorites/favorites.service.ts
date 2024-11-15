@@ -36,13 +36,13 @@ export class FavoritesService {
     return res;
   }
 
-  addToFav(id: string, entity: string) {
+  async addToFav(id: string, entity: string) {
     const currService = this.getCurrService(entity);
     if (currService === null) {
       throw new BadRequestException('Not found');
     }
     try {
-      currService.service.findOne(id);
+      await currService.service.findOne(id);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new UnprocessableEntityException(`${entity} id does not exist`);

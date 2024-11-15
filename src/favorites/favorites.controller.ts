@@ -19,12 +19,12 @@ export class FavoritesController {
   }
 
   @Post(':entity/:id')
-  createFav(
+  async createFav(
     @Param('entity') entity: 'track' | 'album' | 'artist',
 
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    return this.favoritesService.addToFav(id, entity);
+    return await this.favoritesService.addToFav(id, entity);
   }
 
   @Delete(':entity/:id')
