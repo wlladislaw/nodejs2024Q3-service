@@ -5,52 +5,68 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  constructor(private eventEmitter: EventEmitter2) {}
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private prisma: PrismaService,
+  ) {}
   private tracks: Track[] = [];
 
-  findAllTracks(): Track[] {
-    return this.tracks;
+  async findAllTracks(): Promise<Track[]> {
+    return await this.prisma.track.findMany();
   }
 
-  findOne(id: string): Track {
-    const track = this.tracks.find((track) => track.id === id);
+  async findOne(id: string): Promise<Track> {
+    return await this.prisma.track.findUnique({
+      where: { id },
+    });
+  }
+
+  async create(createTrackDto: CreateTrackDto): Promise<Track> {
+    const track: Track = await this.prisma.track.create({
+      data: {
+        ...createTrackDto,
+      },
+    });
+    return track;
+  }
+
+  async update(id: string, updateTrackDto: UpdateTrackDto): Promise<Track> {
+    const track = await this.prisma.track.findUnique({ where: { id } });
     if (!track) {
       throw new NotFoundException(`Not found track by id - ${id}`);
     }
-    return track;
-  }
 
-  create(createTrackDto: CreateTrackDto): Track {
-    const track: Track = { id: uuidv4(), ...createTrackDto };
-    this.tracks.push(track);
-    return track;
-  }
-
-  update(id: string, updateTrackDto: UpdateTrackDto): Track {
-    const trackIdx = this.tracks.findIndex((track) => track.id === id);
-    if (trackIdx === -1) {
-      throw new NotFoundException(`Not found track by id - ${id}`);
-    }
-
-    const upTrack = { ...this.tracks[trackIdx], ...updateTrackDto };
-    this.tracks[trackIdx] = upTrack;
+    const upTrack = await this.prisma.track.update({
+      where: { id },
+      data: {
+        ...updateTrackDto,
+      },
+    });
     return upTrack;
   }
 
-  delete(id: string): void {
-    const trackIdx = this.tracks.findIndex((track) => track.id === id);
-    if (trackIdx === -1) {
+  async delete(id: string): Promise<void> {
+    const track = await this.prisma.track.findUnique({
+      where: { id },
+    });
+    if (track) {
+      await this.prisma.track.delete({
+        where: { id },
+      });
+      this.eventEmitter.emit(
+        'deleteEntity',
+        new DeleteEntityEvent('track', id),
+      );
+    } else {
       throw new NotFoundException(`Not found track by id - ${id}`);
     }
-
-    this.eventEmitter.emit('deleteEntity', new DeleteEntityEvent('track', id));
-
-    this.tracks.splice(trackIdx, 1);
   }
 
+  //////
   @OnEvent('deleteEntity')
   handleDelEvent(event: DeleteEntityEvent) {
     if (event.entityType === 'artist') {

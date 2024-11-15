@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Album } from './album.entity';
 import { AlbumDto } from './dto/album.dto';
-import { v4 as uuidv4 } from 'uuid';
 
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
@@ -13,7 +12,6 @@ export class AlbumService {
     private eventEmitter: EventEmitter2,
     private readonly prisma: PrismaService,
   ) {}
-  private albums: Album[] = [];
 
   async findAll(): Promise<Album[]> {
     return await this.prisma.album.findMany();

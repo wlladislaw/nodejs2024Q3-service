@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Artist } from './artist.entity';
-import { v4 as uuidv4 } from 'uuid';
 import { ArtistDto } from './dto/artist.dto';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
