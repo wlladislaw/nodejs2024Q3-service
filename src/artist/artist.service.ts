@@ -13,7 +13,6 @@ export class ArtistService {
     private prisma: PrismaService,
   ) {}
 
-
   async findAllArtists(): Promise<Artist[]> {
     return await this.prisma.artist.findMany();
   }
