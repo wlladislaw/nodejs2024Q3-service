@@ -8,7 +8,8 @@ RUN npm i
 
 COPY . .
 
+
 EXPOSE ${PORT}
 
-CMD ["npm", "run", "start:prod"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
 
