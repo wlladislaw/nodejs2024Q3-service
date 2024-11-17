@@ -3,10 +3,9 @@ version: '3.8'
 services:
   database:
     build:
-
+      context: .
       dockerfile: Dockerfile.db
-    image: postgres:17.0-alpine
-
+    restart: on-failure
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -16,20 +15,23 @@ services:
     networks:
       - app-network
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "5033:${DB_PORT}"
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      
+    restart: on-failure
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
     environment:
-
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:${DB_PORT}/${DB_NAME}?schema=public
     ports:
       - "${PORT}:${PORT}"
     depends_on:
       - database
+    command: npm run start:dev
     networks:
       - app-network
 
