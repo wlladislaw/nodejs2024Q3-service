@@ -2,33 +2,34 @@ version: '3.8'
 
 services:
   database:
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile.db
-    restart: on-failure
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./logs:/var/log/postgresql
     networks:
       - app-network
     ports:
-      - "5033:${DB_PORT}"
+      - '${DB_OUTER_PORT}:${DB_PORT}'
 
   app:
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile
-    restart: on-failure
     volumes:
       - ./src:/app/src
       - ./dist:/app/dist
     environment:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@database:${DB_PORT}/${DB_NAME}?schema=public
     ports:
-      - "${PORT}:${PORT}"
+      - '${PORT}:${PORT}'
     depends_on:
       - database
     command: npm run start:dev

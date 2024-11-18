@@ -4,8 +4,6 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()

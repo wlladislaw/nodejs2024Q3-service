@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Album } from './album.entity';
 import { AlbumDto } from './dto/album.dto';
 
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
 import { PrismaService } from 'prisma/prisma.service';
 
@@ -66,22 +66,22 @@ export class AlbumService {
     }
   }
 
-  @OnEvent('deleteEntity')
-  handleDeleteEvent(event: DeleteEntityEvent) {
-    if (event.entityType === 'artist') {
-      this.setNullArtist(event.entityId);
-    }
-  }
+  // @OnEvent('deleteEntity')
+  // handleDeleteEvent(event: DeleteEntityEvent) {
+  //   if (event.entityType === 'artist') {
+  //     this.setNullArtist(event.entityId);
+  //   }
+  // }
 
-  async setNullArtist(id: string) {
-    //   const album = this.albums.find((el) => el.artistId === id);
-    //   if (album) {
-    //     this.update(album.id, { ...album, artistId: null });
-    //   }
-    //   await this.prisma.album.update({
-    //     where: { artistId: id },
-    //     data: { artistId: null },
-    //   });
-    // }
-  }
+  // async setNullArtist(id: string) {
+  //   const album = this.albums.find((el) => el.artistId === id);
+  //   if (album) {
+  //     this.update(album.id, { ...album, artistId: null });
+  //   }
+  //   await this.prisma.album.update({
+  //     where: { artistId: id },
+  //     data: { artistId: null },
+  //   });
+  // }
+  // }
 }
