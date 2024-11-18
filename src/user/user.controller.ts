@@ -25,14 +25,14 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  findMany(): User[] {
-    return this.userService.findMany();
+  async findMany(): Promise<User[]> {
+    return await this.userService.findMany();
   }
 
   @Get(':id')
-  findUnique(@Param('id') id: string): User {
+  async findUnique(@Param('id') id: string): Promise<User> {
     if (!isUUID(id)) throw new BadRequestException('Invalid UUID');
-    const user = this.userService.findUnique(id);
+    const user = await this.userService.findUnique(id);
     if (!user) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     } else {
@@ -41,21 +41,24 @@ export class UserController {
   }
 
   @Post()
-  create(@Body() createDto: CreateUserDto): User {
+  async create(@Body() createDto: CreateUserDto): Promise<User> {
     if (!createDto.login || !createDto.password)
       throw new BadRequestException('Required fields empty');
-    return this.userService.create(createDto);
+    return await this.userService.create(createDto);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdatePasswordDto): User {
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdatePasswordDto,
+  ): Promise<User> {
     if (!isUUID(id)) throw new BadRequestException('Invalid UUID');
     if (
       updateDto.newPassword === undefined ||
       updateDto.oldPassword === undefined
     )
       throw new BadRequestException('Fields empty');
-    const updatedUser = this.userService.update(id, updateDto);
+    const updatedUser = await this.userService.update(id, updateDto);
     if (!updatedUser) {
       throw new HttpException('Not found', HttpStatus.NOT_FOUND);
     } else {
@@ -65,8 +68,8 @@ export class UserController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  delete(@Param('id') id: string): void {
+  async delete(@Param('id') id: string): Promise<void> {
     if (!isUUID(id)) throw new BadRequestException('Invalid UUID');
-    this.userService.delete(id);
+    await this.userService.delete(id);
   }
 }

@@ -1,98 +1,123 @@
-import { ArtistService } from './../artist/artist.service';
-import { AlbumService } from './../album/album.service';
-import { TrackService } from './../track/track.service';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-
-import { Favorites } from './favorites.entity';
-import { OnEvent } from '@nestjs/event-emitter';
-import { DeleteEntityEvent } from 'src/events/deleteEntity.event';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class FavoritesService {
-  private favorites: Favorites = { tracks: [], albums: [], artists: [] };
+  constructor(private prisma: PrismaService) {}
 
-  constructor(
-    private readonly trackService: TrackService,
+  async getAllFavs() {
+    const favorites = await this.getOrCreateFavs();
+    const artists = await this.prisma.artist.findMany({
+      where: { id: { in: favorites.artists } },
+    });
 
-    private readonly albumService: AlbumService,
+    const albums = await this.prisma.album.findMany({
+      where: { id: { in: favorites.albums } },
+    });
 
-    private readonly artistService: ArtistService,
-  ) {}
+    const tracks = await this.prisma.track.findMany({
+      where: { id: { in: favorites.tracks } },
+    });
 
-  getAllFavs() {
-    const res = {
-      tracks: this.favorites.tracks.map((id) => this.trackService.findOne(id)),
-      albums: this.favorites.albums.map((id) => this.albumService.findOne(id)),
-      artists: this.favorites.artists.map((id) =>
-        this.artistService.findOne(id),
-      ),
-    };
-
-    return res;
+    return { artists, albums, tracks };
   }
 
-  addToFav(id: string, entity: string) {
-    const currService = this.getCurrService(entity);
-    if (currService === null) {
-      throw new BadRequestException('Not found');
+  async addToFav(id: string, entity: string) {
+    const currEntity = this.getCurrService(entity);
+    if (currEntity === null) {
+      throw new BadRequestException('Not found entity');
     }
     try {
-      currService.service.findOne(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
+      const isFinded = await this.prisma[entity].findUnique({
+        where: { id },
+      });
+      if (!isFinded) {
         throw new UnprocessableEntityException(`${entity} id does not exist`);
-      } else {
-        throw error;
       }
+    } catch (error) {
+      throw error;
+    }
+    const favorites = await this.getOrCreateFavs();
+
+    if (!favorites) {
+      throw new NotFoundException(`Favorites not found`);
     }
 
-    const favoritesList = this.favorites[currService.favsArr];
-    if (!favoritesList.includes(id)) {
-      favoritesList.push(id);
-    }
+    await this.prisma.favorites.update({
+      where: { id: favorites.id },
+      data: {
+        [currEntity]: {
+          push: id,
+        },
+      },
+    });
   }
 
+  async deleteFromFav(id: string, entity: string) {
+    const currEntity = this.getCurrService(entity);
+    if (!currEntity) {
+      throw new BadRequestException(`Invalid entity type: ${entity}`);
+    }
+    const favorites = await this.getOrCreateFavs();
+
+    if (!favorites[currEntity].includes(id)) {
+      throw new NotFoundException(
+        `${entity} with ID ${id} is not in favorites`,
+      );
+    }
+
+    const updatedList = favorites[currEntity].filter((i) => i !== id);
+
+    await this.prisma.favorites.update({
+      where: { id: favorites.id },
+      data: {
+        [currEntity]: updatedList,
+      },
+    });
+  }
+
+  private async getOrCreateFavs() {
+    let favorites = await this.prisma.favorites.findFirst();
+
+    if (!favorites) {
+      favorites = await this.prisma.favorites.create({
+        data: {
+          artists: [],
+          albums: [],
+          tracks: [],
+        },
+      });
+    }
+
+    return favorites;
+  }
   private getCurrService(entity: string) {
     switch (entity) {
       case 'artist':
-        return { service: this.artistService, favsArr: 'artists' };
+        return 'artists';
       case 'album':
-        return { service: this.albumService, favsArr: 'albums' };
+        return 'albums';
       case 'track':
-        return { service: this.trackService, favsArr: 'tracks' };
+        return 'tracks';
       default:
         null;
     }
   }
 
-  @OnEvent('deleteEntity')
-  handleDeleteEvent(event: DeleteEntityEvent) {
-    try {
-      this.deleteFromFav(
-        event.entityId,
-        event.entityType as 'artist' | 'album' | 'track',
-      );
-    } catch (error) {
-      console.log(error.message);
-    }
-  }
-
-  deleteFromFav(id: string, entity: string) {
-    const currService = this.getCurrService(entity);
-
-    const currArr = this.favorites[currService?.favsArr];
-
-    const idx = currArr?.indexOf(id);
-
-    if (idx === -1) {
-      throw new NotFoundException(`${entity} by ${id} does not exist in favs`);
-    }
-
-    currArr?.splice(idx, 1);
-  }
+  // @OnEvent('deleteEntity')
+  // handleDeleteEvent(event: DeleteEntityEvent) {
+  //   try {
+  //     this.deleteFromFav(
+  //       event.entityId,
+  //       event.entityType as 'artist' | 'album' | 'track',
+  //     );
+  //   } catch (error) {
+  //     console.log(error.message);
+  //   }
+  // }
 }

@@ -14,25 +14,25 @@ export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
   @Get()
-  getAllFavs() {
-    return this.favoritesService.getAllFavs();
+  async getAllFavs() {
+    return await this.favoritesService.getAllFavs();
   }
 
   @Post(':entity/:id')
-  createFav(
+  async createFav(
     @Param('entity') entity: 'track' | 'album' | 'artist',
 
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    return this.favoritesService.addToFav(id, entity);
+    return await this.favoritesService.addToFav(id, entity);
   }
 
   @Delete(':entity/:id')
   @HttpCode(204)
-  deleteFav(
+  async deleteFav(
     @Param('entity') entity: 'artist' | 'album' | 'track',
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    this.favoritesService.deleteFromFav(id, entity);
+    await this.favoritesService.deleteFromFav(id, entity);
   }
 }

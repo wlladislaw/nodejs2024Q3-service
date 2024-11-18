@@ -1,0 +1,4 @@
+FROM postgres:17.0-alpine
+
+
+EXPOSE ${DB_PORT}
