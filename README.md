@@ -8,8 +8,10 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/wlladislaw/nodejs2024Q3-service.git
 ```
+Open folder with project
+Checkout to the branch
 
 ## Installing NPM modules
 
@@ -19,12 +21,23 @@ npm install
 
 ## Running application
 
-```
 add .env file by env.example
-```
 
 ```
-npm start
+ docker-compose up --build
+```
+and for run tests in docker check id for container app - docker ps
+
+```
+ docker exec -it < checked app container id> npm run test
+```
+
+
+for local start with postgres on machine:
+
+change env var HOST
+```
+npm run start
 ```
 
 And open http://localhost:4000/docs/ (or port in env file )
