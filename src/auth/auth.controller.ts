@@ -9,13 +9,13 @@ export class AuthController {
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   async signup(@Body() dto: AuthDto) {
-    await this.authService.signUp(dto);
+    await this.authService.signUp(dto.login, dto.password);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: AuthDto) {
-    const token = await this.authService.login(dto);
+    const token = await this.authService.login(dto.login, dto.password);
     return token;
   }
 }

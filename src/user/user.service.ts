@@ -34,6 +34,22 @@ export class UserService {
     }
   }
 
+  async findByLogin(login: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { login },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      ...user,
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    };
+  }
+
   async create(userDto: CreateUserDto): Promise<User> {
     const createdUser = await this.prisma.user.create({
       data: {
