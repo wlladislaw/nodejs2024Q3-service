@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
+import { RefreshTokenDto } from './dto/refresh.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -15,7 +16,14 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: AuthDto) {
-    const token = await this.authService.login(dto.login, dto.password);
-    return token;
+    const tokens = await this.authService.login(dto.login, dto.password);
+    return tokens;
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  async refresh(@Body() { refreshToken }: RefreshTokenDto) {
+    const tokens = this.authService.refreshToken(refreshToken);
+    return tokens;
   }
 }
