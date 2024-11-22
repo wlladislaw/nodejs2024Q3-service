@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import { UserService } from 'src/user/user.service';
@@ -23,7 +24,23 @@ export class AuthService {
 
     const hashedPass = await bcrypt.hash(password, salt);
 
-    await this.userService.create({ login, password: hashedPass });
+    const registeredUser = await this.userService.create({
+      login,
+      password: hashedPass,
+    });
+
+    const payload = { userId: registeredUser.id, login: registeredUser.login };
+    return {
+      id: registeredUser.id,
+      accessToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_KEY,
+        expiresIn: process.env.TOKEN_EXPIRE_TIME,
+      }),
+      refreshToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
+      }),
+    };
   }
 
   async login(login: string, password: string) {
@@ -55,6 +72,9 @@ export class AuthService {
   async refreshToken(
     refreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
+    if (!refreshToken || typeof refreshToken !== 'string') {
+      throw new UnauthorizedException(' No refresh token !');
+    }
     try {
       const payloadFromClient = await this.jwtService.verifyAsync(
         refreshToken,
@@ -63,10 +83,6 @@ export class AuthService {
         },
       );
       const user = await this.userService.findUnique(payloadFromClient.userId);
-
-      if (!user) {
-        throw new ForbiddenException('User not found!');
-      }
 
       const payload = { userId: user.id, login: user.login };
 

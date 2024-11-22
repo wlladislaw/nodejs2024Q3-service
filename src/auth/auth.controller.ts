@@ -12,7 +12,8 @@ export class AuthController {
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   async signup(@Body() dto: AuthDto) {
-    await this.authService.signUp(dto.login, dto.password);
+    const tokens = await this.authService.signUp(dto.login, dto.password);
+    return tokens;
   }
 
   @Public()
@@ -23,6 +24,7 @@ export class AuthController {
     return tokens;
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(@Body() { refreshToken }: RefreshTokenDto) {
