@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
     FavoritesModule,
     JwtModule,
     AuthModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [
