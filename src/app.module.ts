@@ -13,6 +13,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from './logger/logger.module';
+import { LoggerService } from './logger/logger.service';
+
+import { LoggerInterceptor } from './logger/logger.interceptor';
 
 @Module({
   imports: [
@@ -34,6 +37,8 @@ import { LoggerModule } from './logger/logger.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    LoggerService,
+    LoggerInterceptor,
   ],
 })
 export class AppModule {}
