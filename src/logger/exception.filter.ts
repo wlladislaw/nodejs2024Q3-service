@@ -5,14 +5,14 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { LoggerService } from './logger.service';
+import { LoggingService } from './logger.service';
 import { HttpAdapterHost } from '@nestjs/core';
 
 @Catch()
 export class LogExceptionFilter implements ExceptionFilter {
   constructor(
     private readonly httpAdapterHost: HttpAdapterHost,
-    private readonly loggingService: LoggerService,
+    private readonly loggingService: LoggingService,
   ) {}
 
   catch(exception: any, host: ArgumentsHost): void {

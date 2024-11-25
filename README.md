@@ -10,6 +10,7 @@
 ```
 git clone https://github.com/wlladislaw/nodejs2024Q3-service.git
 ```
+
 Open folder with project
 Checkout to the branch
 
@@ -23,19 +24,26 @@ npm install
 
 add .env file by env.example
 
+! If you have the error: Authorization is not implemented - delete users in database , for example by prisma :
+
+```
+npx prisma studio
+```
+
 ```
  docker-compose up --build
 ```
+
 and for run tests in docker check id for container app - docker ps
 
 ```
  docker exec -it < checked app container id> npm run test
 ```
 
-
 for local start with postgres on machine:
 
 change env var HOST
+
 ```
 npm run start
 ```

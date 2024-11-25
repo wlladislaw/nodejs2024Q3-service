@@ -3,13 +3,13 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { LoggerService } from './logger/logger.service';
+import { LoggingService } from './logger/logger.service';
 import { LogExceptionFilter } from './logger/exception.filter';
 import { LoggerInterceptor } from './logger/logger.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const loggingService = app.get(LoggerService);
+  const loggingService = app.get(LoggingService);
 
   process.on('uncaughtException', (err) => {
     loggingService.error('uncaught Exception', err.message, 'main context');
