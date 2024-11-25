@@ -8,6 +8,14 @@ import { AlbumModule } from './album/album.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaService } from 'prisma/prisma.service';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
+import { JwtModule } from '@nestjs/jwt';
+import { LoggerModule } from './logger/logger.module';
+import { LoggingService } from './logger/logger.service';
+
+import { LoggerInterceptor } from './logger/logger.interceptor';
 
 @Module({
   imports: [
@@ -17,8 +25,20 @@ import { PrismaService } from 'prisma/prisma.service';
     ArtistModule,
     AlbumModule,
     FavoritesModule,
+    JwtModule,
+    AuthModule,
+    LoggerModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    LoggingService,
+    LoggerInterceptor,
+  ],
 })
 export class AppModule {}

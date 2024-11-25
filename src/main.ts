@@ -1,19 +1,29 @@
 import 'dotenv/config';
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { LoggingService } from './logger/logger.service';
+import { LogExceptionFilter } from './logger/exception.filter';
+import { LoggerInterceptor } from './logger/logger.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const loggingService = app.get(LoggingService);
 
-  // const yamlDocPath = path.join(__dirname, '../doc/api.yaml');
+  process.on('uncaughtException', (err) => {
+    loggingService.error('uncaught Exception', err.message, 'main context');
+  });
 
-  // const docApi = yaml.load(
-  //   fs.readFileSync(yamlDocPath, 'utf8'),
-  // ) as OpenAPIObject;
+  process.on('unhandledRejection', (mg: any) => {
+    loggingService.error('unhandled Rejection', mg, 'main context');
+  });
 
-  // SwaggerModule.setup('/docs', app, docApi);
+  app.useGlobalInterceptors(app.get(LoggerInterceptor));
+
+  const httpAdapterHost = app.get(HttpAdapterHost);
+
+  app.useGlobalFilters(new LogExceptionFilter(httpAdapterHost, loggingService));
 
   const config = new DocumentBuilder()
     .setTitle('Home Library API')
